@@ -13,7 +13,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Pelicula {
 	@JsonProperty("nombre_comercial")
 	private String nombreComercial;
-	
+	@JsonProperty("nombre_original")
 	private String nombreOriginal;
 	
 	public String getNombreComercial() {

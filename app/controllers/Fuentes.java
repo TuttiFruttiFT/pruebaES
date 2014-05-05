@@ -9,6 +9,7 @@ import static org.elasticsearch.node.NodeBuilder.*;
 import models.Pelicula;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -31,21 +32,30 @@ public class Fuentes extends Controller {
 			Workbook wb = new HSSFWorkbook(new FileInputStream("/home/rfanego/Escritorio/peliculas.xls"));
 			Sheet sheet = wb.getSheetAt(0);
 			
-			Node node = nodeBuilder().node();
+			Node node = nodeBuilder().clusterName("tuttifrutti").client(true).node();
 			Client client = node.client();
 
 			for (Row row : sheet) {
-				int rowNum = row.getRowNum();
-				if(rowNum >= 9 && rowNum < 30){
+				try{
 					Pelicula pelicula = new Pelicula();
-					pelicula.setNombreComercial(row.getCell(0).getStringCellValue());
-					pelicula.setNombreOriginal(row.getCell(1).getStringCellValue());
-					IndexResponse response = client.prepareIndex("TF", "pelicula")
-												   .setSource(Json.toJson(pelicula).asText())
-												   .execute().actionGet();
-					Logger.debug("Número de row: " + rowNum);
-					Logger.debug("Título Comercial: " + row.getCell(0).getStringCellValue());
-					Logger.debug("Título Original: " + row.getCell(1).getStringCellValue());
+					Cell rowNombreComercial = row.getCell(0);
+					Cell rowNombreOriginal = row.getCell(1);
+					if(rowNombreComercial != null){						
+						pelicula.setNombreComercial(rowNombreComercial.getStringCellValue());
+					}
+					if(rowNombreOriginal != null){						
+						pelicula.setNombreOriginal(rowNombreOriginal.getStringCellValue());
+					}
+					
+					String json = Json.toJson(pelicula).toString();
+					
+					Logger.debug("json row: " + json);
+					
+					IndexResponse response = client.prepareIndex("tf", "pelicula")
+							.setSource(json)
+							.execute().actionGet();
+				}catch(Exception e){
+					Logger.error("Error procesando row " + row.getRowNum(),e);
 				}
 			}
 		} catch (Exception e) {
