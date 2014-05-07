@@ -1,6 +1,3 @@
-/**
- * 
- */
 package controllers;
 
 import java.io.FileInputStream;
@@ -37,23 +34,28 @@ public class Fuentes extends Controller {
 
 			for (Row row : sheet) {
 				try{
+					boolean insert = false;
 					Pelicula pelicula = new Pelicula();
 					Cell rowNombreComercial = row.getCell(0);
 					Cell rowNombreOriginal = row.getCell(1);
-					if(rowNombreComercial != null){						
-						pelicula.setNombreComercial(rowNombreComercial.getStringCellValue());
+					if(rowNombreComercial != null){			
+						insert = true;
+						pelicula.setNombreComercial(rowNombreComercial.getStringCellValue().trim());
 					}
-					if(rowNombreOriginal != null){						
-						pelicula.setNombreOriginal(rowNombreOriginal.getStringCellValue());
+					if(rowNombreOriginal != null){
+						insert = true;
+						pelicula.setNombreOriginal(rowNombreOriginal.getStringCellValue().trim());
 					}
 					
-					String json = Json.toJson(pelicula).toString();
-					
-					Logger.debug("json row: " + json);
-					
-					IndexResponse response = client.prepareIndex("tf", "pelicula")
-							.setSource(json)
-							.execute().actionGet();
+					if(insert){						
+						String json = Json.toJson(pelicula).toString();
+						
+						Logger.debug("json row: " + json);
+						
+						IndexResponse response = client.prepareIndex("tf", "pelicula")
+								.setSource(json)
+								.execute().actionGet();
+					}
 				}catch(Exception e){
 					Logger.error("Error procesando row " + row.getRowNum(),e);
 				}
